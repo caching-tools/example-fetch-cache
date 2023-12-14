@@ -1,0 +1,56 @@
+.gridContainer {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  padding: 20px;
+}
+
+.header {
+  grid-column: 1 / -1;
+  gap: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.timeSection {
+  background: #252525;
+  border-radius: 8px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.timeDisplay {
+  font-size: 1.5rem;
+  margin: 10px 0;
+  font-family: "Courier New", Courier, monospace;
+}
+
+.revalidate,
+.button {
+  background-color: #46933a;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.revalidate:hover,
+.button:hover {
+  background-color: #3c7e2e;
+}
+
+@media (max-width: 600px) {
+  .gridContainer {
+    grid-template-columns: 1fr;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: start;
+  }
+}
