@@ -1,7 +1,7 @@
 // @ts-check
 const { IncrementalCache } = require("@neshca/cache-handler");
-const fs = require("fs");
-const path = require("path");
+// const fs = require("fs");
+// const path = require("path");
 // const fastify = require("fastify")({
 //   logger: false,
 // });
@@ -9,26 +9,26 @@ const path = require("path");
 IncrementalCache.onCreation(async () => {
   let cacheStore = new Map();
 
-  const cachePath = path.join(
-    process.cwd(),
-    ".next",
-    "custom-cache",
-    "cache.json"
-  );
+  // const cachePath = path.join(
+  //   process.cwd(),
+  //   ".next",
+  //   "custom-cache",
+  //   "cache.json"
+  // );
 
-  await fs.promises.mkdir(path.dirname(cachePath), { recursive: true });
+  // await fs.promises.mkdir(path.dirname(cachePath), { recursive: true });
 
-  try {
-    const fileString = await fs.promises.readFile(cachePath, "utf-8");
+  // try {
+  //   const fileString = await fs.promises.readFile(cachePath, "utf-8");
 
-    if (!fileString) {
-      throw new Error("File is empty");
-    }
+  //   if (!fileString) {
+  //     throw new Error("File is empty");
+  //   }
 
-    const cacheData = JSON.parse(fileString);
+  //   const cacheData = JSON.parse(fileString);
 
-    cacheStore = new Map(Object.entries(cacheData));
-  } catch (error) {}
+  //   cacheStore = new Map(Object.entries(cacheData));
+  // } catch (error) {}
 
   // fastify.get("/internal/cache-store", async (_request, reply) => {
   //   await reply.code(200).send(Object.fromEntries(cacheStore));
@@ -98,10 +98,10 @@ IncrementalCache.onCreation(async () => {
 
       cacheStore.set(key, cacheData);
 
-      await fs.promises.writeFile(
-        cachePath,
-        JSON.stringify(Object.fromEntries(cacheStore))
-      );
+      // await fs.promises.writeFile(
+      //   cachePath,
+      //   JSON.stringify(Object.fromEntries(cacheStore))
+      // );
     },
   };
 
