@@ -107,7 +107,7 @@ IncrementalCache.onCreation(async () => {
 
   return {
     cache,
-    useFileSystem: false,
+    useFileSystem: true,
   };
 });
 
