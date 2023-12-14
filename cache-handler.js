@@ -2,9 +2,9 @@
 const { IncrementalCache } = require("@neshca/cache-handler");
 const fs = require("fs");
 const path = require("path");
-const fastify = require("fastify")({
-  logger: false,
-});
+// const fastify = require("fastify")({
+//   logger: false,
+// });
 
 IncrementalCache.onCreation(async () => {
   let cacheStore = new Map();
@@ -13,7 +13,7 @@ IncrementalCache.onCreation(async () => {
     process.cwd(),
     ".next",
     "custom-cache",
-    "cache.json",
+    "cache.json"
   );
 
   await fs.promises.mkdir(path.dirname(cachePath), { recursive: true });
@@ -30,54 +30,54 @@ IncrementalCache.onCreation(async () => {
     cacheStore = new Map(Object.entries(cacheData));
   } catch (error) {}
 
-  fastify.get("/internal/cache-store", async (_request, reply) => {
-    await reply.code(200).send(Object.fromEntries(cacheStore));
-  });
+  // fastify.get("/internal/cache-store", async (_request, reply) => {
+  //   await reply.code(200).send(Object.fromEntries(cacheStore));
+  // });
 
-  fastify.get("/internal/cache", async (request, reply) => {
-    const reversedCache = new Map();
+  // fastify.get("/internal/cache", async (request, reply) => {
+  //   const reversedCache = new Map();
 
-    for (const [key, cacheHandlerValue] of cacheStore) {
-      if (cacheHandlerValue?.value?.kind === "FETCH") {
-        let datetime;
+  //   for (const [key, cacheHandlerValue] of cacheStore) {
+  //     if (cacheHandlerValue?.value?.kind === "FETCH") {
+  //       let datetime;
 
-        try {
-          datetime = JSON.parse(
-            atob(cacheHandlerValue.value.data.body),
-          ).datetime;
-        } catch (error) {
-          datetime = JSON.parse(cacheHandlerValue.value.data.body).datetime;
-        }
+  //       try {
+  //         datetime = JSON.parse(
+  //           atob(cacheHandlerValue.value.data.body),
+  //         ).datetime;
+  //       } catch (error) {
+  //         datetime = JSON.parse(cacheHandlerValue.value.data.body).datetime;
+  //       }
 
-        if (!cacheHandlerValue.lastModified) {
-          throw new Error("lastModified is not defined");
-        }
+  //       if (!cacheHandlerValue.lastModified) {
+  //         throw new Error("lastModified is not defined");
+  //       }
 
-        reversedCache.set(datetime, {
-          key,
-          url: cacheHandlerValue.value.data.url,
-          lastModified: cacheHandlerValue.lastModified,
-          revalidate: cacheHandlerValue.value.revalidate,
-        });
-      }
-    }
+  //       reversedCache.set(datetime, {
+  //         key,
+  //         url: cacheHandlerValue.value.data.url,
+  //         lastModified: cacheHandlerValue.lastModified,
+  //         revalidate: cacheHandlerValue.value.revalidate,
+  //       });
+  //     }
+  //   }
 
-    // @ts-expect-error
-    const searchedDatetime = request.query.datetime;
+  //   // @ts-expect-error
+  //   const searchedDatetime = request.query.datetime;
 
-    const searchedData = reversedCache.get(searchedDatetime);
+  //   const searchedData = reversedCache.get(searchedDatetime);
 
-    if (!searchedData) {
-      reply.code(404).send();
-      return;
-    }
+  //   if (!searchedData) {
+  //     reply.code(404).send();
+  //     return;
+  //   }
 
-    await reply.code(200).send(searchedData);
-  });
+  //   await reply.code(200).send(searchedData);
+  // });
 
-  try {
-    await fastify.listen({ port: 3002 });
-  } catch (err) {}
+  // try {
+  //   await fastify.listen({ port: 3002 });
+  // } catch (err) {}
 
   /** @type {import('@neshca/cache-handler').Cache} */
   const cache = {
@@ -100,7 +100,7 @@ IncrementalCache.onCreation(async () => {
 
       await fs.promises.writeFile(
         cachePath,
-        JSON.stringify(Object.fromEntries(cacheStore)),
+        JSON.stringify(Object.fromEntries(cacheStore))
       );
     },
   };
