@@ -6,7 +6,7 @@ const fastify = require("fastify")({
   logger: false,
 });
 
-IncrementalCache.onCreation(async () => {
+IncrementalCache.onCreation(async ({ buildId }) => {
   let cacheStore = new Map();
 
   // const cachePath = path.join(
@@ -29,54 +29,58 @@ IncrementalCache.onCreation(async () => {
 
   //   cacheStore = new Map(Object.entries(cacheData));
   // } catch (error) {}
+  try {
+    fastify.get("/internal/cache-store", async (_request, reply) => {
+      await reply.code(200).send(Object.fromEntries(cacheStore));
+    });
 
-  fastify.get("/internal/cache-store", async (_request, reply) => {
-    await reply.code(200).send(Object.fromEntries(cacheStore));
-  });
+    fastify.get("/internal/cache", async (request, reply) => {
+      const reversedCache = new Map();
 
-  fastify.get("/internal/cache", async (request, reply) => {
-    const reversedCache = new Map();
+      for (const [key, cacheHandlerValue] of cacheStore) {
+        if (cacheHandlerValue?.value?.kind === "FETCH") {
+          let datetime;
 
-    for (const [key, cacheHandlerValue] of cacheStore) {
-      if (cacheHandlerValue?.value?.kind === "FETCH") {
-        let datetime;
+          try {
+            datetime = JSON.parse(
+              atob(cacheHandlerValue.value.data.body)
+            ).datetime;
+          } catch (error) {
+            datetime = JSON.parse(cacheHandlerValue.value.data.body).datetime;
+          }
 
-        try {
-          datetime = JSON.parse(
-            atob(cacheHandlerValue.value.data.body),
-          ).datetime;
-        } catch (error) {
-          datetime = JSON.parse(cacheHandlerValue.value.data.body).datetime;
+          if (!cacheHandlerValue.lastModified) {
+            throw new Error("lastModified is not defined");
+          }
+
+          reversedCache.set(datetime, {
+            key,
+            url: cacheHandlerValue.value.data.url,
+            lastModified: cacheHandlerValue.lastModified,
+            revalidate: cacheHandlerValue.value.revalidate,
+          });
         }
-
-        if (!cacheHandlerValue.lastModified) {
-          throw new Error("lastModified is not defined");
-        }
-
-        reversedCache.set(datetime, {
-          key,
-          url: cacheHandlerValue.value.data.url,
-          lastModified: cacheHandlerValue.lastModified,
-          revalidate: cacheHandlerValue.value.revalidate,
-        });
       }
-    }
 
-    // @ts-expect-error
-    const searchedDatetime = request.query.datetime;
+      // @ts-expect-error
+      const searchedDatetime = request.query.datetime;
 
-    const searchedData = reversedCache.get(searchedDatetime);
+      const searchedData = reversedCache.get(searchedDatetime);
 
-    if (!searchedData) {
-      reply.code(404).send();
-      return;
-    }
+      if (!searchedData) {
+        reply.code(404).send();
+        return;
+      }
 
-    await reply.code(200).send(searchedData);
-  });
+      await reply.code(200).send(searchedData);
+    });
+  } catch (error) {}
 
   try {
-    await fastify.listen({ port: 3002 });
+    if (buildId) {
+      const [fPort] = buildId.split("|");
+      await fastify.listen({ port: Number(fPort) });
+    }
   } catch (err) {}
 
   /** @type {import('@neshca/cache-handler').Cache} */

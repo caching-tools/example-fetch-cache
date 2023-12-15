@@ -24,6 +24,7 @@
     "eslint": "^8",
     "eslint-config-next": "14.0.4",
     "fastify": "^4.25.0",
+    "get-port": "^7.0.0",
     "prettier": "3.1.1",
     "typescript": "^5"
   }
