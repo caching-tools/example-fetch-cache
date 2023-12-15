@@ -1,15 +1,9 @@
 // @ts-check
 const { IncrementalCache } = require("@neshca/cache-handler");
-const { createClient } = require("redis");
-
-const client = createClient({
-  url: process.env.KV_URL,
-});
+const { kv } = require("@vercel/kv");
 
 IncrementalCache.onCreation(async ({ buildId }) => {
   let cacheStore = new Map();
-
-  await client.connect();
 
   /** @type {import('@neshca/cache-handler').Cache} */
   const cache = {
@@ -30,7 +24,7 @@ IncrementalCache.onCreation(async ({ buildId }) => {
 
       cacheStore.set(key, cacheData);
 
-      await client.set(key, JSON.stringify(cacheData));
+      await kv.set(key, JSON.stringify(cacheData));
     },
   };
 
