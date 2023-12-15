@@ -1,87 +1,15 @@
 // @ts-check
 const { IncrementalCache } = require("@neshca/cache-handler");
-// const fs = require("fs");
-// const path = require("path");
-const fastify = require("fastify")({
-  logger: false,
+const { createClient } = require("redis");
+
+const client = createClient({
+  url: process.env.KV_URL,
 });
 
 IncrementalCache.onCreation(async ({ buildId }) => {
   let cacheStore = new Map();
 
-  // const cachePath = path.join(
-  //   process.cwd(),
-  //   ".next",
-  //   "custom-cache",
-  //   "cache.json"
-  // );
-
-  // await fs.promises.mkdir(path.dirname(cachePath), { recursive: true });
-
-  // try {
-  //   const fileString = await fs.promises.readFile(cachePath, "utf-8");
-
-  //   if (!fileString) {
-  //     throw new Error("File is empty");
-  //   }
-
-  //   const cacheData = JSON.parse(fileString);
-
-  //   cacheStore = new Map(Object.entries(cacheData));
-  // } catch (error) {}
-  try {
-    fastify.get("/internal/cache-store", async (_request, reply) => {
-      await reply.code(200).send(Object.fromEntries(cacheStore));
-    });
-
-    fastify.get("/internal/cache", async (request, reply) => {
-      const reversedCache = new Map();
-
-      for (const [key, cacheHandlerValue] of cacheStore) {
-        if (cacheHandlerValue?.value?.kind === "FETCH") {
-          let datetime;
-
-          try {
-            datetime = JSON.parse(
-              atob(cacheHandlerValue.value.data.body)
-            ).datetime;
-          } catch (error) {
-            datetime = JSON.parse(cacheHandlerValue.value.data.body).datetime;
-          }
-
-          if (!cacheHandlerValue.lastModified) {
-            throw new Error("lastModified is not defined");
-          }
-
-          reversedCache.set(datetime, {
-            key,
-            url: cacheHandlerValue.value.data.url,
-            lastModified: cacheHandlerValue.lastModified,
-            revalidate: cacheHandlerValue.value.revalidate,
-          });
-        }
-      }
-
-      // @ts-expect-error
-      const searchedDatetime = request.query.datetime;
-
-      const searchedData = reversedCache.get(searchedDatetime);
-
-      if (!searchedData) {
-        reply.code(404).send();
-        return;
-      }
-
-      await reply.code(200).send(searchedData);
-    });
-  } catch (error) {}
-
-  try {
-    if (buildId) {
-      const [fPort] = buildId.split("|");
-      await fastify.listen({ port: Number(fPort) });
-    }
-  } catch (err) {}
+  await client.connect();
 
   /** @type {import('@neshca/cache-handler').Cache} */
   const cache = {
@@ -102,10 +30,7 @@ IncrementalCache.onCreation(async ({ buildId }) => {
 
       cacheStore.set(key, cacheData);
 
-      // await fs.promises.writeFile(
-      //   cachePath,
-      //   JSON.stringify(Object.fromEntries(cacheStore))
-      // );
+      await client.set(key, JSON.stringify(cacheData));
     },
   };
 

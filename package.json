@@ -26,6 +26,7 @@
     "fastify": "^4.25.0",
     "get-port": "^7.0.0",
     "prettier": "3.1.1",
+    "redis": "^4.6.11",
     "typescript": "^5"
   }
 }
